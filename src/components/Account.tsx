@@ -1,127 +1,43 @@
-import { useState, useEffect } from 'react'
-import { supabase } from '../lib/supabase'
-import { View, Alert, TextInput, Text, TouchableOpacity } from 'react-native'
-import Avatar from './Avatar'
+import { View, Text, TouchableOpacity, StyleSheet } from 'react-native'
+import { supabase } from '@/lib/supabase'
 
-// ...
-
-
-export default function Account({ userId, email }: { userId: string; email?: string }) {
-  const [loading, setLoading] = useState(true)
-  const [username, setUsername] = useState('')
-  const [website, setWebsite] = useState('')
-  const [avatarUrl, setAvatarUrl] = useState('')
-  const styles = appStyles
-
-  useEffect(() => {
-    if (userId) getProfile()
-  }, [userId])
-
-  async function getProfile() {
-    try {
-      setLoading(true)
-
-      let { data, error, status } = await supabase
-        .from('profiles')
-        .select(`username, website, avatar_url`)
-        .eq('id', userId)
-        .single()
-      if (error && status !== 406) {
-        throw error
-      }
-
-      if (data) {
-        setUsername(data.username)
-        setWebsite(data.website)
-        setAvatarUrl(data.avatar_url)
-      }
-    } catch (error) {
-      if (error instanceof Error) {
-        Alert.alert(error.message)
-      }
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  async function updateProfile({
-    username,
-    website,
-    avatar_url,
-  }: {
-    username: string
-    website: string
-    avatar_url: string
-  }) {
-    try {
-      setLoading(true)
-
-      const updates = {
-        id: userId,
-        username,
-        website,
-        avatar_url,
-        updated_at: new Date(),
-      }
-
-      let { error } = await supabase.from('profiles').upsert(updates)
-
-      if (error) {
-        throw error
-      }
-    } catch (error: any) {
-      Alert.alert(error.message)
-    } finally {
-      setLoading(false)
-    }
-  }
-
+export default function Account({ email }: { userId: string; email?: string | null }) {
   return (
     <View style={styles.container}>
-      <View>
+      <Text style={styles.label}>Logged in as</Text>
+      <Text style={styles.email}>{email ?? ''}</Text>
 
-        {/* ... */}
-
-        <Text style={styles.label}>Email</Text>
-        <TextInput
-          value={email ?? ''}
-          editable={false}
-          selectTextOnFocus={false}
-          style={[styles.input, styles.inputDisabled]}
-        />
-      </View>
-      <View style={styles.verticallySpaced}>
-        <Text style={styles.label}>Username</Text>
-        <TextInput
-          value={username || ''}
-          onChangeText={(text) => setUsername(text)}
-          style={styles.input}
-        />
-      </View>
-      <View style={styles.verticallySpaced}>
-        <Text style={styles.label}>Website</Text>
-        <TextInput
-          value={website || ''}
-          onChangeText={(text) => setWebsite(text)}
-          style={styles.input}
-        />
-      </View>
-
-      <View style={[styles.verticallySpaced, styles.mt20]}>
-        <TouchableOpacity
-          style={[styles.button, loading && styles.buttonDisabled]}
-          onPress={() => updateProfile({ username, website, avatar_url: avatarUrl })}
-          disabled={loading}
-        >
-          <Text style={styles.buttonText}>{loading ? 'Loading ...' : 'Update'}</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.verticallySpaced}>
-        <TouchableOpacity style={styles.button} onPress={() => supabase.auth.signOut()}>
-          <Text style={styles.buttonText}>Sign Out</Text>
-        </TouchableOpacity>
-      </View>
+      <TouchableOpacity style={styles.button} onPress={() => supabase.auth.signOut()}>
+        <Text style={styles.buttonText}>Sign out</Text>
+      </TouchableOpacity>
     </View>
   )
 }
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 24,
+    marginTop: 60,
+  },
+  label: {
+    fontSize: 14,
+    color: '#666',
+  },
+  email: {
+    fontSize: 18,
+    fontWeight: '600',
+    marginTop: 4,
+    marginBottom: 32,
+  },
+  button: {
+    backgroundColor: '#2563eb',
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  buttonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+})

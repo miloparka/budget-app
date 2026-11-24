@@ -26,6 +26,6 @@ The plan is to have the following pages:
 3. Income details
    - Add money (button > form)
    - Add money categories (button > form)
-3. Notes
-4. Settings
+4. Notes
+5. Settings
    - Change password, username etc
